@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Custos Operacionais</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px #ccc;
+        }
+
+        img {
+            width: 150px; /* Ajuste o tamanho da logo */
+            display: block;
+            margin: 0 auto 20px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        input {
+            width: 100px;
+            padding: 5px;
+            text-align: center;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .total {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: right;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="KLIN.png" alt="Logo da Empresa"> <!-- Adicione a logo da empresa aqui -->
+
+    <h2>Calculadora de Custos Operacionais</h2>
+
+    <label>Valor por Hora (R$):</label>
+    <input type="number" id="valorHora" value="0" step="0.01" oninput="calcularCusto()">
+    
+    <label>Quantidade de Horas:</label>
+    <input type="number" id="quantidadeHoras" value="0" step="0.1" oninput="calcularCusto()">
+    
+    <label>Valor por KM Rodado (R$):</label>
+    <input type="number" id="valorKm" value="0" step="0.01" oninput="calcularCusto()">
+    
+    <label>Quantidade de KM:</label>
+    <input type="number" id="quantidadeKm" value="0" step="0.1" oninput="calcularCusto()">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Insumo</th>
+                <th>Valor Unitário (R$)</th>
+                <th>Quantidade</th>
+                <th>Custo Total (R$)</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaInsumos">
+            <!-- As linhas serão inseridas pelo JavaScript -->
+        </tbody>
+    </table>
+
+    <div class="total">
+        Custo Total: <span id="custoTotal">R$ 0,00</span>
+    </div>
+</div>
+
+<script>
+    // Dados dos insumos
+    const insumos = [
+        { nome: "Tenopa", valor: 4.76 },
+        { nome: "Fendona", valor: 2.61 },
+        { nome: "Bifentol", valor: 5.88 },
+        { nome: "Demand", valor: 25.31 },
+        { nome: "Cipermol 40 pm", valor: 3.25 },
+        { nome: "Atratol gel", valor: 0.51 },
+        { nome: "Advion", valor: 1.40 },
+        { nome: "Formifim", valor: 0.43 },
+        { nome: "Bifentol PS", valor: 0.25 },
+        { nome: "Residual PS", valor: 0.24 },
+        { nome: "Porta isca", valor: 4.75 },
+        { nome: "Porta cola", valor: 4.90 },
+        { nome: "Girassol (pacote)", valor: 0.48 },
+        { nome: "Granulado (Pacote)", valor: 0.48 },
+        { nome: "Termidor 25 CE", valor: 3.58 },
+        { nome: "PLURESTO", valor: 120.00 },
+        { nome: "LUMINOSA", valor: 70.00 },
+        { nome: "GLOBO MOSCA", valor: 60.00 },
+        { nome: "FEROMÔNIO", valor: 120.00 },
+        { nome: "Manutenção luminosa", valor: 45.00 },
+        { nome: "Cloro por litro", valor: 1.13 },
+        { nome: "Termitox", valor: 15.33 },
+    ];
+
+    // Adiciona os insumos na tabela
+    function carregarInsumos() {
+        const tabela = document.getElementById("tabelaInsumos");
+        insumos.forEach((insumo, index) => {
+            let row = tabela.insertRow();
+            let cellNome = row.insertCell(0);
+            let cellValor = row.insertCell(1);
+            let cellQuantidade = row.insertCell(2);
+            let cellCusto = row.insertCell(3);
+
+            cellNome.textContent = insumo.nome;
+            cellValor.textContent = `R$ ${insumo.valor.toFixed(2)}`;
+
+            let inputQuantidade = document.createElement("input");
+            inputQuantidade.type = "number";
+            inputQuantidade.min = 0;
+            inputQuantidade.value = 0;
+            inputQuantidade.dataset.index = index;
+            inputQuantidade.oninput = calcularCusto;
+            cellQuantidade.appendChild(inputQuantidade);
+
+            cellCusto.id = `custo-${index}`;
+            cellCusto.textContent = "R$ 0,00";
+        });
+    }
+
+    // Calcula o custo total
+    function calcularCusto() {
+        let custoTotal = 0;
+
+        // Custo por hora
+        let valorHora = parseFloat(document.getElementById("valorHora").value) || 0;
+        let quantidadeHoras = parseFloat(document.getElementById("quantidadeHoras").value) || 0;
+        custoTotal += valorHora * quantidadeHoras;
+
+        // Custo por KM
+        let valorKm = parseFloat(document.getElementById("valorKm").value) || 0;
+        let quantidadeKm = parseFloat(document.getElementById("quantidadeKm").value) || 0;
+        custoTotal += valorKm * quantidadeKm;
+
+        // Custo dos insumos
+        document.querySelectorAll("#tabelaInsumos input").forEach(input => {
+            let index = input.dataset.index;
+            let quantidade = parseFloat(input.value) || 0;
+            let custoInsumo = quantidade * insumos[index].valor;
+            document.getElementById(`custo-${index}`).textContent = `R$ ${custoInsumo.toFixed(2)}`;
+            custoTotal += custoInsumo;
+        });
+
+        // Atualiza o custo total na tela
+        document.getElementById("custoTotal").textContent = `R$ ${custoTotal.toFixed(2)}`;
+    }
+
+    // Carrega os insumos ao iniciar
+    carregarInsumos();
+</script>
+
+</body>
+</html>
+
